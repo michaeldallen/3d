@@ -1,0 +1,17 @@
+{
+
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+
+
+  "remoteEnv": {
+    "OPENSCADPATH": "${HOME}/openscad"
+  },
+ 
+ 
+  // install 
+  // * OpenSCAD
+  // when the container starts
+  //
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y openscad"
+
+}
