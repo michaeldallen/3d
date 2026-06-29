@@ -1,17 +1,31 @@
 {
-
   "image": "mcr.microsoft.com/devcontainers/universal:2",
-
-
+  "features": {
+    "ghcr.io/devcontainers/features/git-lfs:1": {
+      "version": "latest"
+    }
+  },  
   "remoteEnv": {
     "OPENSCADPATH": "${HOME}/openscad"
   },
- 
- 
+
   // install 
+  // * git LFS
   // * OpenSCAD
+  // * antigravity CLI
   // when the container starts
   //
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y openscad"
+  "postCreateCommand":     "git lfs install && sudo apt-get update && sudo apt-get install -y openscad && curl -fsSL https://antigravity.google/cli/install.sh | bash",
 
+  // Customizes your VS Code terminal settings inside the Codespace
+  "customizations": {
+    "vscode": {
+      "settings": {
+        // Ensures your terminal looks for binaries in local user folders
+        "terminal.integrated.env.linux": {
+          "PATH": "${env:PATH}:${userHome}/.local/bin"
+        }
+      }
+    }
+  }
 }
