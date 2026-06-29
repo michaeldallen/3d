@@ -1,0 +1,27 @@
+# BOF
+
+helm.install :
+	[ -x venv/bin/activate ] || python3 -m venv venv
+	[ -x venv/bin/helm ] || curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+	[ -x venv/bin/helm ] || chmod +x ./get_helm.sh
+	[ -x venv/bin/helm ] || env PATH=${PATH}:${PWD}/venv/bin USE_SUDO="false" HELM_INSTALL_DIR="./venv/bin" ./get_helm.sh
+	[ ! -f ./get_helm.sh ] || rm -fv ./get_helm.sh
+
+helm.chartmuseum :
+	[ -d charts ] || mkdir -pv charts
+	docker run \
+	    --rm \
+	    -it \
+	    -p 8080:8080 \
+	    -e DEBUG=1 \
+	    -e STORAGE=local \
+	    -e STORAGE_LOCAL_ROOTDIR=/charts \
+	    -v $$(pwd)/charts:/charts \
+	    --user=$$(id -u):$$(id -g) \
+	    ghcr.io/helm/chartmuseum:v0.13.1
+
+
+helm.install.dryrun.% :
+	helm install --dry-run --debug $* charts/$*
+
+# EOF

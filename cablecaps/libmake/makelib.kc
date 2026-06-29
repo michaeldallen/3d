@@ -1,0 +1,39 @@
+#BOF
+
+kc.install : venv/opt/kc
+	@fgrep --silent ". $$(readlink -f venv/opt/kc)" venv/bin/activate && { echo "kc already configured in $$(readlink -f venv/bin/activate)" ; } || { echo ". $$(readlink -f venv/opt/kc)" >> venv/bin/activate ; echo "kc configured in $$(readlink -f venv/bin/activate)" ; }
+
+venv/opt/kc :
+	@[ -d $$(dirname $@) ] || mkdir -p $$(dirname $@)
+	@(
+		echo '#BOF'
+		echo ''
+		echo 'kc-set() {'
+		echo '    export KC_CLUSTER=$$1'
+		echo '    export KUBECONFIG=$$HOME/.kube/config-cache/$${KC_CLUSTER}.kc'
+		echo '}'
+		echo ''
+		echo 'kc-get() {'
+		echo '    echo "KC_CLUSTER: $${KC_CLUSTER}"'
+		echo '    echo "KUBECONFIG: $${KUBECONFIG} $$([ -r $${KUBECONFIG} ] || echo "(not readable)")"'
+		echo '}'
+		echo ''
+		echo 'kc-update() {'
+		echo '    aws eks update-kubeconfig --kubeconfig $$HOME/.kube/config-cache/$${KC_CLUSTER}.kc --name $${KC_CLUSTER} $$@'
+		echo '    chmod 600 $${KUBECONFIG}'
+		echo '}'
+		echo ''
+		echo 'kc-unset() {'
+		echo '    unset KUBECONFIG'
+		echo '    unset KC_CLUSTER'
+		echo '}'
+		echo ''
+		echo 'kc-version() {'
+		echo '    echo "kc v0.1.0"'
+		echo '}'
+		echo ''
+		echo '#EOF'
+	) > $@
+	@echo "kc installed at $@"
+
+# EOF

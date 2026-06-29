@@ -1,0 +1,20 @@
+#BOF
+
+aws.readme :
+	@shopt -s xpg_echo
+	@echo "to configure credentials for do one of these:\n\n\tawssaml --role aws-account-name/aws-role --session-duration 8h --profile default\n\tawssaml --role aws-account-name/ReadOnlyUser --session-duration 8h --profile ro\n\n"
+	@echo "try it out with\n\n\taws --profile admin ec2 describe-instances\n\taws --profile ro ec2 describe-instances\n\n"
+
+aws.awssaml.install :
+	[ -d venv ] || python3 -m venv venv
+	. venv/bin/activate
+	[ -x venv/bin/awssaml ] || { pip3 install --upgrade pip ; pip3 install --trusted-host mw-python-repository.mathworks.com --extra-index-url http://mw-python-repository.mathworks.com/artifactory/api/pypi/pypi-repos/simple awssaml ; }
+
+aws.cli.v2.install :
+	[ -d venv ] || python3 -m venv venv
+	[ -f venv/awscliv2.zip ] || ( cd venv ; curl --silent "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" )
+	[ -d venv/aws-cli/v2 ] || ( cd venv ; unzip -DD -q awscliv2.zip )
+	[ -x venv/bin/aws ] || ( cd venv ; ./aws/install -i `pwd`/aws-cli -b `pwd`/bin )
+
+
+#EOF

@@ -1,0 +1,87 @@
+# BOF
+
+git.subtree.check :
+	@git log --grep='mtools git subtree add locator' --format=oneline --decorate=no | awk '/mtools git subtree add locator/ { \
+	        component = $$8 ; \
+		split($$9, s, "=") ; repo = s[2] ; \
+		split($$10, s, "=") ; prefix = s[2] ; \
+		split($$11, s, "=") ; branch = s[2] ; \
+	        if (components[component]) { \
+	           print "ignoring duplicate entry for component: ", component ; \
+	           next ; \
+	        } \
+	        components[component] = component ; \
+	       	repos[component] = repo ; \
+	        prefixes[component] = prefix ; \
+	        branches[component] = branch ; \
+	        print "registered component: ", component, "repo: ", repo, "prefix: ", prefix, "branch: ", branch ; \
+		} \
+	        END { \
+		        for(c in components) { \
+				print "" ; \
+				print "found subtree registered at: ", c ; \
+				print "*** you may wish to: ${MAKE} git.subtree.check." c ; \
+			} \
+	        }'
+
+
+git.subtree.check.% :
+	@echo "checking git subtree '$*'"
+	@git log --grep='mtools git subtree add locator - $*' --format=oneline --decorate=no | awk '/mtools git subtree add locator/' | head -1 | awk '{ split($$9, repo, "=") ; split($$10, prefix, "=") ; split($$11, branch, "=") ; print repo[2], prefix[2], branch[2] }' | while read repo prefix branch ; do \
+	    echo "subtree repo: $${repo}" ; \
+	    echo "subtree prefix: $${prefix}" ; \
+	    echo "subtree branch: $${branch}" ; \
+	    head_branch=$$(git rev-parse --abbrev-ref HEAD) ; \
+	    echo "HEAD branch: $${head_branch}" ; \
+	    parent_branch=$${prefix}-parent ; \
+	    echo "ephemeral parent branch: $${parent_branch}" ; \
+	    ( \
+	        git branch $${parent_branch} ; \
+	        git checkout $${parent_branch} ; \
+	        git subtree add --prefix $${prefix}-parent $${repo} $${branch} --squash ; \
+	    ) 2>&1 | sed 's/^/    /' ; \
+	    diffs=$$(diff -qr $${prefix}-parent $${prefix} | wc -l) ; \
+	    if [ $${diffs} -gt 0 ] ; then \
+	        echo number of differences: $${diffs} ; \
+	        echo "files differing: " ; \
+	        ( \
+	            diff -qr $${prefix}-parent $${prefix} ; \
+	            echo "" ; \
+	            echo "(parent is on the left '<', we are on the right '>')" ; \
+	            diff -r $${prefix}-parent $${prefix} ; \
+	            echo "" ; \
+	            echo you may wanna inherit from the subtree parent: ; \
+	            echo "    git subtree pull --prefix $${prefix} $${repo} $${branch} --squash" ; \
+	            echo you may wanna promote to the subtree parent: ; \
+	            echo "    git subtree push --prefix $${prefix} $${repo} $${branch} --squash" ; \
+	            echo "" ; \
+	        ) 2>&1 | sed "s/^/    /" ; \
+	    else \
+	            echo no differences found ; \
+	    fi ; \
+	    ( \
+	        git checkout $${head_branch} ; \
+	        git branch --delete --force $${parent_branch} ; \
+	    ) 2>&1 | sed 's/^/    /' ; \
+	done 2>&1 | sed 's/^/    /'
+	@echo ""
+
+
+
+
+
+git.subtree.check! :
+	@${MAKE} --no-print-directory git.subtree.check | fgrep '*** you may wish to:' | sed 's/\*\*\* you may wish to: *//' | sh
+
+
+git.readme :
+	@echo 'https://stackoverflow.com/questions/1057564/pretty-git-branch-graphs'
+	@echo 'https://stackoverflow.com/questions/1838873/visualizing-branch-topology-in-git/34467298#34467298'
+
+
+
+git.pull.children :
+	find * -path '*/.git/config' | sed 's,/.git/config,,' | while read repo; do echo "(echo $$repo ; cd $$repo ; git pull --recurse-submodules ; echo '')" ; done
+
+
+# EOF

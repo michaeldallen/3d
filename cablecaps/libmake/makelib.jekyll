@@ -1,0 +1,49 @@
+# BOF
+
+
+
+JEKYLL_VERSION := 4
+DOCKER_JEKYLL := docker run --rm   --volume="$$(pwd):/srv/jekyll" --env "JEKYLL_UID=$$(id -u)" --env "JEKYLL_GID=$$(id -g)"  -it --publish 4000:4000 jekyll/jekyll:${JEKYLL_VERSION}
+
+
+
+JEKYLL_BUNDLE_UPDATE = ${DOCKER_JEKYLL} bundle update
+jekyll.bundle-update :
+	@echo "${JEKYLL_BUNDLE_UPDATE}"
+jekyll.bundle-update! :
+	${JEKYLL_BUNDLE_UPDATE}
+
+
+
+
+JEKYLL_NEW = ${DOCKER_JEKYLL} jekyll new . --force --skip-bundle ; ${JEKYLL_BUNDLE_UPDATE}
+jekyll.new :
+	@echo "${JEKYLL_NEW}"
+jekyll.new! :
+	${JEKYLL_NEW}
+
+
+
+
+JEKYLL_BUILD = ${DOCKER_JEKYLL} jekyll build
+jekyll.build :
+	@echo "${JEKYLL_BUILD}"
+jekyll.build! :
+	${JEKYLL_BUILD}
+
+
+
+JEKYLL_SERVE = ${DOCKER_JEKYLL} jekyll serve --incremental
+jekyll.serve :
+	@echo "${JEKYLL_SERVE}"
+jekyll.serve! :
+	${JEKYLL_SERVE}
+
+
+JEKYLL_CLEAN = rm -rfv _site .sass-cache .jekyll-cache .jekyll-metadata vendor ; find * -name '*~' -exec rm -v {} \;
+jekyll.clean :
+	@echo "${JEKYLL_CLEAN}"
+jekyll.clean! :
+	${JEKYLL_CLEAN}
+
+# EOF

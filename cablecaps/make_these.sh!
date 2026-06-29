@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for x in $@ ; do
+    echo make openscad.artifacts/$x | sed 's/[.]scad$/.stl/' | sh
+done
+
+#EOF

@@ -1,0 +1,53 @@
+# BOF
+
+
+# for ingress on minikube on macos ...
+#
+# https://stackoverflow.com/questions/63388065/minikube-kubernetes-wont-allow-ingress-on-mac-despite-running-as-a-vm
+# https://minikube.sigs.k8s.io/docs/drivers/hyperkit/
+# https://github.com/kubernetes/minikube/issues/7332
+
+ifeq ($(shell uname -s),Darwin)
+        MINIKUBE_START_OPTIONS := --vm=true --driver=hyperkit
+else ifeq ($(shell uname -s),Linux)
+        MINIKUBE_START_OPTIONS := --driver=docker
+endif
+
+
+
+
+
+minikube.install :
+	[ -x venv/bin/activate ] || python3 -m venv venv
+	[ -x venv/bin/minikube ] || curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-$$(uname -s | tr '[:upper:]' '[:lower:]')-amd64
+	[ -x venv/bin/minikube ] || install minikube-$$(uname -s | tr '[:upper:]' '[:lower:]')-amd64 venv/bin/minikube
+	[ ! -f minikube-$$(uname -s | tr '[:upper:]' '[:lower:]')-amd64 ] || rm -fv ./minikube-$$(uname -s | tr '[:upper:]' '[:lower:]')-amd64
+	. venv/bin/activate && minikube version
+
+minikube.status :
+	minikube status
+
+minikube.stop :
+	minikube stop
+
+minikube.delete :
+	minikube delete
+
+minikube.destroy : minikube.stop minikube.delete
+
+minikube.start :
+	minikube start ${MINIKUBE_START_OPTIONS}
+
+minikube.addons.ingress.enable :
+	minikube addons enable ingress
+
+minikube.tunnel :
+	minikube tunnel
+
+minikube.launch : minikube.start minikube.addons.ingress.enable
+
+minikube.dashboard :
+	minikube dashboard
+
+
+# EOF

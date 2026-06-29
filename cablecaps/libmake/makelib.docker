@@ -1,0 +1,12 @@
+#BOF
+
+docker.run :
+	docker pull registry.gitlab.com/m5194/mt-jekyll:ci-setup
+	docker run registry.gitlab.com/m5194/mt-jekyll:ci-setup
+
+
+docker.run.% :
+	docker pull $(subst --,/,$*)
+	docker run  $(subst --,/,$*)
+
+#EOF

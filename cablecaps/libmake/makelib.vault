@@ -1,0 +1,23 @@
+# BOF
+
+.ONESHELL:
+
+
+ifeq ($(origin VAULT_VERSION), undefined)
+  VAULT_VERSION = 1.10.3
+endif
+
+
+vault.install :
+	[ -x venv/bin/activate ] || python3 -m venv venv
+	[ -x venv/bin/vault ] || curl --location --remote-name https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
+	[ -x venv/bin/vault ] || unzip -d venv/bin/ vault_${VAULT_VERSION}_linux_amd64.zip
+	[ ! -f vault_${VAULT_VERSION}_linux_amd64.zip ] || rm -v vault_${VAULT_VERSION}_linux_amd64.zip
+
+
+vault.readme :
+	@echo 'hello, vault'
+
+
+
+# EOF

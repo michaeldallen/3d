@@ -1,0 +1,151 @@
+# BOF
+
+.ONESHELL:
+
+ifeq ($(origin TERRAFORM_CMD), undefined)
+  TF := terraform
+else
+  TF := ${TERRAFORM_CMD}
+endif
+
+
+TERRAFORM_CLEAN_FIND   := find * -name 'tf.theplan*' -print | xargs --max-lines=1 --no-run-if-empty
+TERRAFORM_CLEAN_REMOVE := rm -v
+TERRAFORM_CLEAN_WISH   := echo '*** you may wish to: '
+
+ifeq ($(origin TERRAFORM_VERSION), undefined)
+  TERRAFORM_VERSION = 1.1.7
+endif
+
+
+ifeq ($(origin TERRAFORM_AWS_ACCOUNT_NAME), undefined)
+  TERRAFORM_AWS_ACCOUNT_NAME = aws-account-name
+endif
+
+
+ifeq ($(origin TERRAFORM_AWS_ROLE), undefined)
+  TERRAFORM_AWS_ROLE = aws-role
+endif
+
+
+ifeq ($(origin TERRAFORM_AWS_PROFILE), undefined)
+  TERRAFORM_AWS_PROFILE = aws-profile
+endif
+
+
+terraform.install :
+	[ -x venv/bin/activate ] || python3 -m venv venv
+	[ -x venv/bin/terraform ] || curl --location --remote-name https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+	[ -x venv/bin/terraform ] || unzip -d venv/bin/ terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+	[ ! -f terraform_${TERRAFORM_VERSION}_linux_amd64.zip ] || rm -v terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+
+
+terraform.init :
+	${TF} init
+
+terraform.validate : terraform.init
+	${TF} validate
+
+terraform.output : terraform.init
+	${TF} output
+
+
+
+terraform.plan : terraform.init
+	${TF} plan --out tf.theplan
+
+terraform.apply : terraform.init
+	@
+	start=`date`
+	start_seconds=`date +%s`
+	${TF} apply tf.theplan
+	rm -f tf.theplan
+	finish=`date`
+	finish_seconds=`date +%s`
+	elapsed_seconds=`expr $${finish_seconds} - $${start_seconds}`
+	echo "start:   " $${start}
+	echo "finish:  " $${finish}
+	runtime_minutes=`expr $${elapsed_seconds} / 60`
+	runtime_seconds=`expr $${elapsed_seconds} % 60`
+	echo $${runtime_minutes} `[ $${runtime_minutes} = 1 ] && echo "minute" || echo "minutes"`, $${runtime_seconds} `[ $${runtime_seconds} = 1 ] && echo "second" || echo "seconds"` "("$${elapsed_seconds} `[ $${elapsed_seconds} = 1 ] && echo "second" || echo "seconds"`")"
+
+
+
+
+
+terraform.destroy.plan : terraform.clean! terraform.init
+	${TF} plan --destroy --out tf.theplan.destroy
+
+terraform.destroy.apply : terraform.init
+	@
+	start=`date`
+	start_seconds=`date +%s`
+	${TF} apply tf.theplan.destroy
+	rm -v tf.theplan.destroy
+	finish=`date`
+	finish_seconds=`date +%s`
+	elapsed_seconds=`expr $${finish_seconds} - $${start_seconds}`
+	echo "start:   " $${start}
+	echo "finish:  " $${finish}
+	runtime_minutes=`expr $${elapsed_seconds} / 60`
+	runtime_seconds=`expr $${elapsed_seconds} % 60`
+	echo $${runtime_minutes} `[ $${runtime_minutes} = 1 ] && echo "minute" || echo "minutes"`, $${runtime_seconds} `[ $${runtime_seconds} = 1 ] && echo "second" || echo "seconds"` "("$${elapsed_seconds} `[ $${elapsed_seconds} = 1 ] && echo "second" || echo "seconds"`")"
+
+
+
+
+terraform.refresh.plan : terraform.init
+	${TF} plan --out tf.theplan.refresh --refresh-only
+
+terraform.refresh.apply : terraform.init
+	@
+	start=`date`
+	start_seconds=`date +%s`
+	${TF} apply tf.theplan.refresh
+	rm -v tf.theplan.refresh
+	finish=`date`
+	finish_seconds=`date +%s`
+	elapsed_seconds=`expr $${finish_seconds} - $${start_seconds}`
+	echo "start:   " $${start}
+	echo "finish:  " $${finish}
+	runtime_minutes=`expr $${elapsed_seconds} / 60`
+	runtime_seconds=`expr $${elapsed_seconds} % 60`
+	echo $${runtime_minutes} `[ $${runtime_minutes} = 1 ] && echo "minute" || echo "minutes"`, $${runtime_seconds} `[ $${runtime_seconds} = 1 ] && echo "second" || echo "seconds"` "("$${elapsed_seconds} `[ $${elapsed_seconds} = 1 ] && echo "second" || echo "seconds"`")"
+
+
+
+
+terraform.clean  :
+	@
+	start=`date`
+	start_seconds=`date +%s`
+	${TERRAFORM_CLEAN_FIND} ${TERRAFORM_CLEAN_WISH} ${TERRAFORM_CLEAN_REMOVE}
+	finish=`date`
+	finish_seconds=`date +%s`
+	elapsed_seconds=`expr $${finish_seconds} - $${start_seconds}`
+	echo "start:   " $${start}
+	echo "finish:  " $${finish}
+	runtime_minutes=`expr $${elapsed_seconds} / 60`
+	runtime_seconds=`expr $${elapsed_seconds} % 60`
+	echo $${runtime_minutes} `[ $${runtime_minutes} = 1 ] && echo "minute" || echo "minutes"`, $${runtime_seconds} `[ $${runtime_seconds} = 1 ] && echo "second" || echo "seconds"` "("$${elapsed_seconds} `[ $${elapsed_seconds} = 1 ] && echo "second" || echo "seconds"`")"
+
+
+
+terraform.clean! :
+	@${TERRAFORM_CLEAN_FIND}                         ${TERRAFORM_CLEAN_REMOVE}
+
+terraform.readme :
+	@echo 'awssaml --role ${TERRAFORM_AWS_ACCOUNT_NAME}/${TERRAFORM_AWS_ROLE} --session-duration 8h --profile ${TERRAFORM_AWS_PROFILE}'
+	@echo ''
+	@echo 'want terraform-X (such as v0.13.5)?  try this:'
+	@echo '    T="0.13.5"'
+	@echo '    mkdir terraform-v$${T}'
+	@echo '    curl --remote-name https://releases.hashicorp.com/terraform/$${T}/terraform_$${T}_linux_amd64.zip'
+	@echo '    unzip -d terraform-v$${T} terraform_$${T}_linux_amd64.zip'
+	@echo '    rm -v terraform_$${T}_linux_amd64.zip'
+	@echo '    export PATH=`pwd`/terraform-v$${T}:"$${PATH}"'
+	@echo '    which terraform'
+	@echo '    terraform version'
+
+
+# EOF

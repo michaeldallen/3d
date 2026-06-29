@@ -1,0 +1,45 @@
+#BOF
+
+ifeq ($(shell uname -s),Darwin)
+	OPENSCAD := env /Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD
+else ifeq ($(shell uname -s),Linux)
+	OPENSCAD := env /usr/bin/openscad
+endif
+
+
+.PRECIOUS: openscad.cache/%.stl openscad.cache/%.png
+
+SHELL := bash
+
+include $(shell [ -d openscad.cache ] && find openscad.cache -name '*.deps')
+
+openscad.diag :
+	uname -a
+	uname -s
+	env | sort
+
+openscad.clean : openscad.tidy
+	[ -d openscad.cache ] && rm -rfv openscad.cache || true
+
+openscad.tidy :
+	[ -d openscad.artifacts ] && rm -rfv openscad.artifacts || true
+
+openscad.cache/%.stl openscad.cache/%.png : %.scad
+	@[ -d openscad.cache ] || mkdir -v openscad.cache
+	@echo "one '$@' coming up"
+	@(echo "'$*' start: `date`" ; ${OPENSCAD} --quiet -d $@.deps -o $@ $< ; echo "'$*' finish: `date`") 2>&1 | sed 's/^/    /'
+
+openscad.artifacts/% : openscad.cache/%
+	@[ -d openscad.artifacts ] || mkdir -v openscad.artifacts
+	@cp -v $< $@ 2>&1 | sed 's/^/    /'
+
+openscad.% :
+	@grep --files-without-match NOSTL *.scad | while read s ; do \
+		[ -r $$s ] && ${MAKE} --no-print-directory openscad.artifacts/$$(basename $$s .scad).$* ; \
+	done
+
+.PHONY: openscad.all
+
+openscad.all : openscad.stl # openscad.png
+
+#EOF

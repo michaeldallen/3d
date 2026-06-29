@@ -1,0 +1,27 @@
+# BOF
+
+SSH_CLEAN_FIND   := find * -name "key-$$(basename $$(pwd))*" -print | xargs --max-lines=1 --no-run-if-empty
+SSH_CLEAN_RMFILE := rm -v
+SSH_CLEAN_WISH   := echo '*** you may wish to: '
+
+ssh.keygen :
+	@if [ -f key-$$(basename $$(pwd)) ] ; then \
+		echo file key-$$(basename $$(pwd)) exists - no action taken ; \
+	else \
+		ssh-keygen -f key-$$(basename $$(pwd)) -C $$(basename $$(pwd)) -P "" ; \
+	fi
+
+ssh.keygen.% :
+	@if [ -f "$*" ] ; then \
+		echo file "$* exists - no action taken" ; \
+	else \
+		ssh-keygen -f "$*" -C "$*" -P "" ; \
+	fi
+
+ssh.clean  :
+	@${SSH_CLEAN_FIND} ${SSH_CLEAN_WISH} ${SSH_CLEAN_RMFILE}
+
+ssh.clean! :
+	@${SSH_CLEAN_FIND}                   ${SSH_CLEAN_RMFILE}
+
+# EOF

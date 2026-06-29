@@ -1,0 +1,10 @@
+
+mallen.whats-my-ip! :
+	@${MAKE} mallen.whats-my-ip 2>&1 | mWish
+
+mallen.whats-my-ip :
+	@echo '*** you may wish to: dig +short myip.opendns.com @resolver1.opendns.com'
+	@echo '*** you may wish to: dig TXT +short o-o.myaddr.l.google.com @ns1.google.com'
+	@echo '*** you may wish to: host myip.opendns.com resolver1.opendns.com'
+
+# EOF
