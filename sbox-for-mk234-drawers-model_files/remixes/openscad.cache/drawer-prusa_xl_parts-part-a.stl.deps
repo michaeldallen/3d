@@ -1,0 +1,7 @@
+openscad.cache/drawer-prusa_xl_parts-part-a.stl: \
+	/Users/michaelallen/Downloads/sbox-for-mk234-drawers-model_files/remixes/../140pct-SBox_Drawers_Drawer_large_1x.stl \
+	/Users/michaelallen/Documents/OpenSCAD/libraries/libmose/mutil.scad \
+	/Users/michaelallen/Documents/OpenSCAD/libraries/libmose/mcube.scad \
+	/Users/michaelallen/Documents/OpenSCAD/libraries/libmose/mdefaults.scad \
+	/Users/michaelallen/Downloads/sbox-for-mk234-drawers-model_files/remixes/libdrawer.scad \
+	drawer-prusa_xl_parts-part-a.scad
